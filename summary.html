@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block title %}Summary - EduSummarize AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- HEADER -->
+    <div class="card border-0 shadow-sm p-4 mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h4 class="mb-1"><i class="bi bi-film"></i> {{ video.filename }}</h4>
+                {% if video.is_demo %}<span class="badge bg-warning text-dark">Demo Mode</span>{% endif %}
+                <span class="badge bg-success">Status: {{ video.status }}</span>
+                {% if language_label %}
+                <span class="badge bg-info text-dark">
+                    <i class="bi bi-translate"></i> {{ language_label }}{% if video.language == 'te' %} (English letters){% endif %}
+                </span>
+                {% endif %}
+            </div>
+            <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                <span class="text-muted">Transcript Word Count: <strong>{{ word_count }}</strong></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABS -->
+    <ul class="nav nav-tabs mb-3" id="studyTabs" role="tablist">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#summaryTab">Summary</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#keyPointsTab">Key Points</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#notesTab">Notes</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#termsTab">Important Terms</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#transcriptTab">Full Transcript</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#quizTab">Quiz</button></li>
+    </ul>
+
+    <div class="tab-content">
+
+        <!-- SUMMARY -->
+        <div class="tab-pane fade show active" id="summaryTab">
+            <div class="card border-0 shadow-sm p-4">
+                <h5 class="text-primary mb-3"><i class="bi bi-file-text"></i> AI Generated Summary</h5>
+                <p class="lh-lg">{{ video.summary }}</p>
+                <div class="mt-3">
+                    <a href="{{ url_for('quiz_page', video_id=video.id) }}" class="btn btn-primary">
+                        <i class="bi bi-patch-question"></i> Start Quiz
+                    </a>
+                    <a href="{{ url_for('mindmap_page', video_id=video.id) }}" class="btn btn-outline-primary">
+                        <i class="bi bi-diagram-3"></i> View Mind Map
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- KEY POINTS -->
+        <div class="tab-pane fade" id="keyPointsTab">
+            <div class="row g-3">
+                {% for point in video.key_points %}
+                <div class="col-md-6">
+                    <div class="card key-point-card border-0 shadow-sm p-3 h-100">
+                        <div class="d-flex">
+                            <span class="key-point-number">{{ loop.index }}</span>
+                            <p class="mb-0 ms-3">{{ point }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- STUDY NOTES -->
+        <div class="tab-pane fade" id="notesTab">
+            <div class="card border-0 shadow-sm p-4">
+                <h5 class="text-primary mb-3"><i class="bi bi-journal-text"></i> Study Notes</h5>
+                {% if video.notes %}
+                    {% for line in video.notes.splitlines() %}
+                        {% if line.startswith('## ') %}
+                            <h6 class="text-primary mt-3 mb-2">{{ line[3:] }}</h6>
+                        {% elif line.startswith('# ') %}
+                            <h5 class="mb-3">{{ line[2:] }}</h5>
+                        {% elif line.startswith('- ') %}
+                            <div class="d-flex mb-1">
+                                <span class="text-primary me-2">&bull;</span>
+                                <p class="mb-0">{{ line[2:] }}</p>
+                            </div>
+                        {% elif line.strip() %}
+                            <p class="mb-1">{{ line }}</p>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted mb-0">Study notes for this video are not available yet.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- IMPORTANT TERMS -->
+        <div class="tab-pane fade" id="termsTab">
+            <div class="row g-3">
+                {% for term in video.important_terms %}
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm p-3 h-100">
+                        <h6 class="text-primary mb-1">{{ term.term }}</h6>
+                        <p class="mb-0 text-muted small">{{ term.meaning }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- TRANSCRIPT -->
+        <div class="tab-pane fade" id="transcriptTab">
+            <div class="card border-0 shadow-sm p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0"><i class="bi bi-card-text"></i> Full Video Transcript</h5>
+                    <div>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="copyTranscript()">
+                            <i class="bi bi-clipboard"></i> Copy Transcript
+                        </button>
+                        <a class="btn btn-sm btn-outline-secondary"
+                           href="data:text/plain;charset=utf-8,{{ video.transcript | urlencode }}"
+                           download="transcript_{{ video.id }}.txt">
+                            <i class="bi bi-download"></i> Download Transcript
+                        </a>
+                    </div>
+                </div>
+                <div class="transcript-box p-3" id="transcriptText">{{ video.transcript }}</div>
+            </div>
+        </div>
+
+        <!-- QUIZ TAB (settings) -->
+        <div class="tab-pane fade" id="quizTab">
+            <div class="card border-0 shadow-sm p-4">
+                <h5 class="mb-3"><i class="bi bi-sliders"></i> Quiz Settings</h5>
+                <form action="{{ url_for('generate_new_quiz', video_id=video.id) }}" method="POST" class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label">Number of Questions</label>
+                        <select class="form-select" name="num_questions">
+                            <option value="5" selected>5</option>
+                            <option value="10">10</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Difficulty</label>
+                        <select class="form-select" name="difficulty">
+                            <option value="Easy">Easy</option>
+                            <option value="Medium" selected>Medium</option>
+                            <option value="Hard">Hard</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-arrow-repeat"></i> Generate New Questions
+                        </button>
+                    </div>
+                </form>
+                <hr>
+                <a href="{{ url_for('quiz_page', video_id=video.id) }}" class="btn btn-primary">
+                    <i class="bi bi-play-fill"></i> Start Quiz Now
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function copyTranscript() {
+        const text = document.getElementById('transcriptText').innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Transcript copied to clipboard!');
+        });
+    }
+</script>
+{% endblock %}

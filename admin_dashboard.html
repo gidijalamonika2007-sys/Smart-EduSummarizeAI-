@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard - EduSummarize AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+        <div>
+            <h2 class="mb-1 text-danger"><i class="bi bi-shield-lock"></i> Admin Dashboard</h2>
+            <p class="text-muted mb-0">System overview, users and recent activity.</p>
+        </div>
+        <a href="{{ url_for('logout_page') }}" class="btn btn-outline-danger">
+            <i class="bi bi-box-arrow-right"></i> Logout
+        </a>
+    </div>
+
+    <!-- SYSTEM STATS -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3 col-6">
+            <div class="card stat-card text-center border-0 shadow-sm p-3">
+                <h2 class="text-primary">{{ stats.total_users }}</h2>
+                <p class="text-muted mb-0">Registered Users</p>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card stat-card text-center border-0 shadow-sm p-3">
+                <h2 class="text-success">{{ stats.active_users }}</h2>
+                <p class="text-muted mb-0">Active Users</p>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card stat-card text-center border-0 shadow-sm p-3">
+                <h2 class="text-primary">{{ stats.total_videos }}</h2>
+                <p class="text-muted mb-0">Videos Processed</p>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card stat-card text-center border-0 shadow-sm p-3">
+                <h2 class="text-success">{{ stats.average_score }}%</h2>
+                <p class="text-muted mb-0">Average Quiz Score</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- USER MANAGEMENT -->
+    <h4 class="mb-3"><i class="bi bi-people-fill"></i> User Management</h4>
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Videos</th>
+                        <th>Joined</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                    <tr>
+                        <td>{{ u.id }}</td>
+                        <td>
+                            <i class="bi bi-person-circle {% if u.role == 'admin' %}text-danger{% endif %}"></i>
+                            {{ u.username }}
+                        </td>
+                        <td>{{ u.email or '-' }}</td>
+                        <td>
+                            <span class="badge {% if u.role == 'admin' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                {{ u.role }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if u.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">Disabled</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ u.video_count }}</td>
+                        <td>{{ u.created_at[:10] }}</td>
+                        <td class="text-end">
+                            {% if u.id != current_user.id %}
+                            <form action="{{ url_for('admin_toggle_user', user_id=u.id) }}"
+                                  method="POST" class="d-inline">
+                                {% if u.is_active %}
+                                    <button type="submit" class="btn btn-sm btn-outline-warning" title="Disable account">
+                                        <i class="bi bi-person-x"></i> Disable
+                                    </button>
+                                {% else %}
+                                    <button type="submit" class="btn btn-sm btn-outline-success" title="Enable account">
+                                        <i class="bi bi-person-check"></i> Enable
+                                    </button>
+                                {% endif %}
+                            </form>
+                            <form action="{{ url_for('admin_delete_user', user_id=u.id) }}"
+                                  method="POST" class="d-inline"
+                                  onsubmit="return confirm('Delete {{ u.username }}? Their videos will be kept.');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete account">
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                            </form>
+                            {% else %}
+                                <span class="badge bg-info text-dark">That's you</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <!-- RECENT ACTIVITY -->
+    <h4 class="mb-3"><i class="bi bi-activity"></i> Recent Videos</h4>
+    {% if history|length == 0 %}
+        <div class="alert alert-secondary">No videos have been processed yet.</div>
+    {% else %}
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Source</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Latest Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in history %}
+                    <tr>
+                        <td>{{ item.video_id }}</td>
+                        <td>{{ item.title or item.filename }}</td>
+                        <td><span class="badge bg-light text-dark border">{{ item.source_type }}</span></td>
+                        <td>
+                            <span class="badge {% if item.status == 'COMPLETED' %}bg-success{% elif item.status == 'FAILED' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                {{ item.status }}
+                            </span>
+                        </td>
+                        <td>{{ item.created_at[:10] }}</td>
+                        <td>
+                            {% if item.result_id %}
+                                {{ item.percentage }}%
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

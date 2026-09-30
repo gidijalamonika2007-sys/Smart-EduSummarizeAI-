@@ -1,0 +1,274 @@
+/* ==========================================================
+   EduSummarize AI - Custom Styles
+   Educational color theme, defined as CSS variables so they
+   can be changed easily in one place.
+   ========================================================== */
+
+:root {
+    --edu-primary: #2563eb;      /* Blue */
+    --edu-primary-dark: #1d4ed8;
+    --edu-background: #f7f9fc;   /* Light grey/white */
+    --edu-success: #16a34a;      /* Green */
+    --edu-warning: #f59e0b;      /* Orange */
+    --edu-danger: #dc2626;       /* Red */
+    --edu-text: #1f2937;
+    --edu-radius: 14px;
+}
+
+body {
+    background-color: var(--edu-background);
+    color: var(--edu-text);
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+.navbar-brand {
+    font-size: 1.3rem;
+}
+
+/* Buttons use the primary blue theme */
+.btn-primary {
+    background-color: var(--edu-primary);
+    border-color: var(--edu-primary);
+}
+.btn-primary:hover {
+    background-color: var(--edu-primary-dark);
+    border-color: var(--edu-primary-dark);
+}
+.btn-outline-primary {
+    color: var(--edu-primary);
+    border-color: var(--edu-primary);
+}
+.text-primary {
+    color: var(--edu-primary) !important;
+}
+
+/* Cards: rounded corners + subtle shadow, consistent spacing */
+.card {
+    border-radius: var(--edu-radius);
+}
+
+.hero-section {
+    background: linear-gradient(180deg, #eaf1ff 0%, var(--edu-background) 100%);
+    border-radius: 0 0 40px 40px;
+}
+
+.feature-card {
+    transition: transform 0.15s ease;
+}
+.feature-card:hover {
+    transform: translateY(-4px);
+}
+.feature-icon {
+    font-size: 2rem;
+    color: var(--edu-primary);
+}
+
+.stat-card h2 {
+    font-weight: 700;
+}
+
+/* Upload page drop zone */
+.drop-zone {
+    border: 2px dashed #c7d2fe;
+    border-radius: var(--edu-radius);
+    background-color: #ffffff;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+    cursor: pointer;
+}
+.drop-zone.dragover {
+    border-color: var(--edu-primary);
+    background-color: #eef2ff;
+}
+
+.processing-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+/* Key point numbered cards */
+.key-point-card {
+    border-radius: var(--edu-radius);
+}
+.key-point-number {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: var(--edu-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+/* Transcript scroll box */
+.transcript-box {
+    max-height: 420px;
+    overflow-y: auto;
+    background-color: #fbfbfd;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    white-space: pre-wrap;
+    line-height: 1.7;
+}
+
+/* Quiz options */
+.quiz-option {
+    padding: 10px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.quiz-option:hover {
+    background-color: #f3f6ff;
+    border-color: var(--edu-primary);
+}
+.quiz-option .form-check-input:checked ~ .form-check-label {
+    font-weight: 600;
+    color: var(--edu-primary);
+}
+
+/* Success / Danger accents (matches spec section 30) */
+.border-success { border-color: var(--edu-success) !important; }
+.border-danger { border-color: var(--edu-danger) !important; }
+.bg-success { background-color: var(--edu-success) !important; }
+.bg-danger { background-color: var(--edu-danger) !important; }
+.bg-warning { background-color: var(--edu-warning) !important; }
+
+/* =========================================================
+   PROCESSING PAGE (progressive processing UI)
+   ========================================================= */
+
+/* Each row of the step list: done = green tick, active = spinning */
+.processing-steps li {
+    padding: 6px 0;
+    font-size: 1.02rem;
+}
+.processing-steps li.active-step {
+    font-weight: 600;
+    color: var(--edu-primary);
+}
+.processing-steps li i {
+    margin-right: 8px;
+}
+
+/* =========================================================
+   RESULTS DASHBOARD (quiz performance charts + review)
+   ========================================================= */
+
+/* Chart cards: fixed, responsive height so nothing overflows */
+.chart-box {
+    position: relative;
+    height: 300px;
+}
+.chart-box-sm {
+    position: relative;
+    height: 260px;
+}
+
+/* Small Q1 Q2 Q3 ... status squares under the question chart */
+.answer-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.answer-chip {
+    min-width: 44px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-align: center;
+    border: none;
+}
+.answer-chip.btn-correct { background-color: var(--edu-success); }
+.answer-chip.btn-wrong   { background-color: var(--edu-danger); }
+.answer-chip.btn-skipped { background-color: #9ca3af; }
+a.answer-chip:hover { opacity: 0.85; }
+
+/* Review cards: green border when correct, red when incorrect */
+.review-card-correct { border-left: 5px solid var(--edu-success); }
+.review-card-wrong   { border-left: 5px solid var(--edu-danger); }
+
+/* "Review This Topic" link under wrong answers */
+.review-link { font-size: 0.9rem; }
+
+/* ==========================================================
+   MIND MAP (rendered as a collapsible indented tree)
+   ========================================================== */
+
+.mindmap-root {
+    min-width: 280px;
+}
+
+.mindmap-branch {
+    margin: 6px 0;
+}
+
+.mindmap-children {
+    margin-left: 26px;
+    padding-left: 18px;
+    border-left: 2px solid #c7d2fe;
+}
+
+.mindmap-label {
+    display: inline-block;
+    padding: 7px 14px;
+    border-radius: var(--edu-radius);
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.mindmap-depth-0 {
+    background-color: var(--edu-primary);
+    color: #fff;
+    font-size: 1.1rem;
+    padding: 10px 18px;
+}
+
+.mindmap-depth-1 {
+    background-color: #e0e7ff;
+    color: var(--edu-primary-dark);
+    border: 1px solid #c7d2fe;
+}
+
+.mindmap-depth-2 {
+    background-color: #f1f5f9;
+    color: var(--edu-text);
+    border: 1px solid #e2e8f0;
+    font-weight: 500;
+}
+
+.mindmap-depth-3 {
+    background-color: #ffffff;
+    color: var(--edu-text);
+    border: 1px dashed #cbd5e1;
+    font-weight: 400;
+    font-size: 0.92rem;
+}
+
+.mindmap-collapsible {
+    cursor: pointer;
+    user-select: none;
+}
+
+.mindmap-collapsible:hover {
+    filter: brightness(0.96);
+}
+
+.mindmap-collapsed::after {
+    content: " \25B8";   /* small right arrow when folded */
+}
+
+.mindmap-collapsible:not(.mindmap-collapsed)::after {
+    content: "\25BE";    /* small down arrow when open */
+}
+

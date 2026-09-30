@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}Upload Video - EduSummarize AI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <h2 class="text-center mb-1">Add a Video to Study</h2>
+            <p class="text-center text-muted mb-4">
+                Use a public educational video link or upload a video from your computer.
+            </p>
+
+            <form action="{{ url_for('process_video') }}" method="POST" enctype="multipart/form-data" id="uploadForm">
+
+                <!-- Two input options, shown as Bootstrap tabs -->
+                <ul class="nav nav-pills nav-justified mb-3" id="inputTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" type="button" data-bs-toggle="pill"
+                                data-bs-target="#tab-upload" role="tab" id="tabBtn-upload">
+                            <i class="bi bi-upload"></i> Upload File
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" type="button" data-bs-toggle="pill"
+                                data-bs-target="#tab-url" role="tab" id="tabBtn-url">
+                            <i class="bi bi-link-45deg"></i> Video URL
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+
+                    <!-- ============ OPTION 1: UPLOAD A FILE ============ -->
+                    <div class="tab-pane fade show active" id="tab-upload" role="tabpanel">
+                        <div id="dropZone" class="drop-zone text-center p-5 mb-3">
+                            <i class="bi bi-cloud-arrow-up display-4 text-primary"></i>
+                            <p class="mt-3 mb-1 fw-semibold">Drag &amp; drop your video here</p>
+                            <p class="text-muted small mb-2">or</p>
+                            <label for="videoInput" class="btn btn-outline-primary">
+                                <i class="bi bi-folder2-open"></i> Choose Video
+                            </label>
+                            <input type="file" id="videoInput" name="video"
+                                   accept=".mp4,.mov,.avi,.mkv,.webm" class="d-none">
+                            <p class="text-muted small mt-3 mb-0">MP4, MOV, AVI, MKV or WEBM</p>
+                        </div>
+
+                        <div id="fileInfo" class="card p-3 mb-3 d-none">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <p class="mb-0 fw-semibold" id="fileName"></p>
+                                    <p class="mb-0 text-muted small" id="fileSize"></p>
+                                </div>
+                                <i class="bi bi-check-circle-fill text-success fs-4"></i>
+                            </div>
+                            <video id="videoPreview" class="w-100 mt-3 rounded d-none" controls height="240"></video>
+                        </div>
+                    </div>
+
+                    <!-- ============ OPTION 2: PASTE A VIDEO LINK ============ -->
+                    <div class="tab-pane fade" id="tab-url" role="tabpanel">
+                        <div class="card p-4 mb-3">
+                            <label for="videoUrlInput" class="form-label fw-semibold">
+                                <i class="bi bi-link-45deg"></i> Paste Video Link
+                            </label>
+                            <input type="url" class="form-control form-control-lg" id="videoUrlInput"
+                                   name="video_url" placeholder="https://www.youtube.com/watch?v=..."
+                                   autocomplete="off">
+                            <div class="form-text">
+                                Supported public sources: YouTube, Vimeo, Dailymotion, TED,
+                                Internet Archive, SoundCloud. Only the audio stream is
+                                downloaded, which makes processing faster.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Remembers which tab the student used -->
+                <input type="hidden" name="input_type" id="inputType" value="upload">
+
+                <!-- ============ PROCESSING MODE ============ -->
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="mode" id="modeQuick"
+                                   value="quick" checked>
+                            <label class="form-check-label" for="modeQuick">
+                                <strong>Quick Processing</strong>
+                                <span class="text-muted small">&mdash; transcript, short summary,
+                                    5 key points and 5 quiz questions (recommended)</span>
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="mode" id="modeDetailed"
+                                   value="detailed">
+                            <label class="form-check-label" for="modeDetailed">
+                                <strong>Detailed Study Mode</strong>
+                                <span class="text-muted small">&mdash; detailed summary, important
+                                    terms, practice questions and 10 quiz questions (slower)</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary btn-lg" id="processBtn">
+                        <i class="bi bi-gear-fill"></i> Process Video
+                    </button>
+                </div>
+            </form>
+
+            {% if demo_mode %}
+            <hr class="my-4">
+            <div class="card border-warning">
+                <div class="card-body text-center">
+                    <h5><i class="bi bi-stars text-warning"></i> No API key? Try Demo Mode</h5>
+                    <p class="text-muted mb-3">
+                        Demo Mode uses a sample "Introduction to Artificial Intelligence" lecture
+                        so you can try the full app instantly, with no upload or internet required.
+                    </p>
+                    <form action="{{ url_for('process_video') }}" method="POST">
+                        <input type="hidden" name="use_demo" value="1">
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-play-circle"></i> Try Demo Mode
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Mind Map - EduSummarize AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+        <div>
+            <h2 class="mb-1"><i class="bi bi-diagram-3"></i> Mind Map</h2>
+            <p class="text-muted mb-0">{{ video.title or video.filename }}</p>
+        </div>
+        <div>
+            <a href="{{ url_for('summary_page', video_id=video.id) }}" class="btn btn-outline-success">
+                <i class="bi bi-journal-text"></i> Study Notes
+            </a>
+            <a href="{{ url_for('quiz_page', video_id=video.id) }}" class="btn btn-outline-primary">
+                <i class="bi bi-patch-question"></i> Quiz
+            </a>
+            <form action="{{ url_for('regenerate_mindmap', video_id=video.id) }}"
+                  method="POST" class="d-inline">
+                <button type="submit" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-repeat"></i> Regenerate
+                </button>
+            </form>
+        </div>
+    </div>
+
+    {% if video.mind_map %}
+    <div class="card border-0 shadow-sm p-4 mb-4 overflow-auto">
+        <!-- The tree below is built by JavaScript from the JSON (see scripts block) -->
+        <div id="mindmapRoot" class="mindmap-root"></div>
+    </div>
+
+    <p class="text-muted small">
+        <i class="bi bi-info-circle"></i>
+        Generated automatically from the video transcript. Click a branch to collapse or expand it.
+        {% if demo_mode %}(Built offline from this transcript - no API key needed.){% endif %}
+    </p>
+    {% else %}
+    <div class="alert alert-warning">
+        No mind map exists for this video yet.
+        <a href="{{ url_for('processing_page', video_id=video.id) }}">Check the processing page</a>.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if video.mind_map %}
+<script>
+    // The mind map is stored as one nested JSON object:
+    //   {label: "...", children: [{label, children: [...]}, ...]}
+    // It is rendered here with plain JavaScript - no external library.
+    const MIND_MAP = {{ video.mind_map | tojson }};
+
+    function buildNode(node, depth) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'mindmap-branch';
+
+        const label = document.createElement('div');
+        label.className = 'mindmap-label mindmap-depth-' + Math.min(depth, 3);
+        label.textContent = node.label || 'Idea';
+
+        wrapper.appendChild(label);
+
+        if (node.children && node.children.length > 0) {
+            const kids = document.createElement('div');
+            kids.className = 'mindmap-children';
+            node.children.forEach(child => kids.appendChild(buildNode(child, depth + 1)));
+            wrapper.appendChild(kids);
+
+            // Clicking a branch label folds/unfolds its children
+            label.classList.add('mindmap-collapsible');
+            label.addEventListener('click', () => {
+                kids.classList.toggle('d-none');
+                label.classList.toggle('mindmap-collapsed');
+            });
+        }
+        return wrapper;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const root = document.getElementById('mindmapRoot');
+        if (root && MIND_MAP) root.appendChild(buildNode(MIND_MAP, 0));
+    });
+</script>
+{% endif %}
+{% endblock %}

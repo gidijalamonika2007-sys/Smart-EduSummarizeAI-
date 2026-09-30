@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Login - EduSummarize AI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card border-0 shadow-sm p-4">
+                <div class="text-center mb-4">
+                    <i class="bi bi-box-arrow-in-right display-5 text-primary"></i>
+                    <h3 class="mt-2">Welcome Back</h3>
+                    <p class="text-muted mb-0">Log in to see your dashboard and saved results.</p>
+                </div>
+
+                <form action="{{ url_for('login_page', next=request.args.get('next')) }}" method="POST">
+                    <input type="hidden" name="next" value="{{ request.args.get('next') or '' }}">
+
+                    <div class="mb-3">
+                        <label for="username" class="form-label fw-semibold">Username</label>
+                        <input type="text" class="form-control" id="username" name="username"
+                               required autofocus autocomplete="username" placeholder="Your username">
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="password" class="form-label fw-semibold">Password</label>
+                        <input type="password" class="form-control" id="password" name="password"
+                               required autocomplete="current-password" placeholder="Your password">
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-box-arrow-in-right"></i> Log In
+                        </button>
+                    </div>
+                </form>
+
+                <p class="text-center text-muted mt-3 mb-0">
+                    New here? <a href="{{ url_for('register_page') }}">Create an account</a>
+                    &nbsp;·&nbsp;
+                    <a href="{{ url_for('admin_login_page') }}" class="text-danger">Admin login</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,35 @@
+﻿
+=== 1. URL VALIDATION + SSRF PROTECTION ===
+  [PASS] validate: empty
+  [PASS] validate: ftp protocol
+  [PASS] validate: file protocol
+  [PASS] validate: javascript protocol
+  [PASS] validate: localhost
+  [PASS] validate: loopback IP
+  [PASS] validate: private IP
+  [PASS] validate: private 10.x
+  [PASS] validate: unsupported host
+  [PASS] validate: youtube home page, not a video
+  [PASS] validate: youtube watch link
+  [PASS] validate: youtu.be short link
+  [PASS] validate: vimeo link
+  [PASS] validate: ted link
+  [PASS] validate: IPv6 loopback rejected
+  [PASS] hash stable across tracking params + case
+  [PASS] hash is 64 hex chars
+
+=== 2. QUIZ ANALYTICS (pure Python, feeds the dashboard) ===
+  [PASS] score = 2/4
+  [PASS] percentage = 50.0
+  [PASS] incorrect = 2
+  [PASS] review has 4 items
+  [PASS] student answer text readable
+  [PASS] topic chart: 2 topics
+  [PASS] topic percentages
+  [PASS] difficulty chart: Easy/Medium/Hard
+  [PASS] difficulty percentages
+  [PASS] topics to review = both topics
+  [PASS] perfect score -> no review topics
+  [PASS] question chart values
+  [PASS] 90% message
+  [PASS] 50% message

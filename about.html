@@ -1,0 +1,318 @@
+{% extends "base.html" %}
+{% block title %}Quiz Results - EduSummarize AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <div class="text-center mb-4">
+        <h2><i class="bi bi-trophy-fill text-warning"></i> Quiz Results</h2>
+        <p class="lead mb-0">{{ message }}</p>
+    </div>
+
+    <!-- ===== 42.1 RESULTS SUMMARY CARDS (all values from the real attempt) ===== -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3 col-6">
+            <div class="card text-center border-0 shadow-sm p-3">
+                <h3 class="text-primary mb-0">{{ result.score }} / {{ result.total_questions }}</h3>
+                <p class="text-muted mb-0">Score</p>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card text-center border-0 shadow-sm p-3">
+                <h3 class="text-primary mb-0">{{ result.percentage }}%</h3>
+                <p class="text-muted mb-0">Percentage</p>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card text-center border-0 shadow-sm p-3">
+                <h3 class="text-success mb-0">{{ result.correct_answers }}</h3>
+                <p class="text-muted mb-0">Correct Answers</p>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card text-center border-0 shadow-sm p-3">
+                <h3 class="text-danger mb-0">{{ result.incorrect_answers }}</h3>
+                <p class="text-muted mb-0">Incorrect Answers</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 42.6 OVERALL SCORE PROGRESS BAR ===== -->
+    <div class="card border-0 shadow-sm p-4 mb-4">
+        <h6 class="mb-3">Overall Score</h6>
+        <div class="progress" style="height: 26px;">
+            <div class="progress-bar {% if result.percentage >= 75 %}bg-success{% elif result.percentage >= 60 %}bg-warning{% else %}bg-danger{% endif %} fs-6"
+                 role="progressbar" style="width: {{ result.percentage }}%;">
+                {{ result.percentage }}%
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 42.2 DOUGHNUT + 42.3 QUESTION-WISE BAR CHART ===== -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm p-4 h-100">
+                <h6 class="text-center mb-3">Answer Performance</h6>
+                <div class="chart-box">
+                    <canvas id="answerChart"></canvas>
+                </div>
+                <p class="text-center small text-muted mb-0 mt-2">
+                    Correct: {{ result.correct_answers }} &nbsp;·&nbsp; Incorrect: {{ result.incorrect_answers }}
+                </p>
+            </div>
+        </div>
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm p-4 h-100">
+                <h6 class="text-center mb-3">Question-wise Performance</h6>
+                <div class="chart-box">
+                    <canvas id="questionChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 42.7 TOPIC CHART (hidden when there is no topic data) ===== -->
+    {% if show_topic_chart %}
+    <div class="card border-0 shadow-sm p-4 mb-4">
+        <h6 class="text-center mb-3">Topic-wise Performance</h6>
+        <div class="chart-box chart-box-wide">
+            <canvas id="topicChart"></canvas>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ===== 42.8 DIFFICULTY CHART (only levels present in the quiz) ===== -->
+    {% if show_difficulty_chart %}
+    <div class="card border-0 shadow-sm p-4 mb-4">
+        <h6 class="text-center mb-3">Performance by Difficulty</h6>
+        <div class="chart-box">
+            <canvas id="difficultyChart"></canvas>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ===== 42.10 TOPICS TO REVIEW (from the incorrect answers only) ===== -->
+    {% if topics_to_review %}
+    <div class="card border-0 shadow-sm p-4 mb-4 border-start border-warning border-4">
+        <h5 class="mb-3"><i class="bi bi-book"></i> Topics to Review</h5>
+        <ul class="mb-3" id="topicReviewList">
+            {% for topic in topics_to_review %}
+                <li>{{ topic }}</li>
+            {% endfor %}
+        </ul>
+        <a href="{{ url_for('summary_page', video_id=video.id) }}" class="btn btn-outline-success btn-sm">
+            <i class="bi bi-journal-text"></i> Open Summary and Key Points
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- ===== 42.4 QUESTION OVERVIEW GRID (green = right, red = wrong, grey = skipped) ===== -->
+    <div class="card border-0 shadow-sm p-4 mb-4">
+        <h6 class="mb-3">Question Overview</h6>
+        <div class="answer-grid">
+            {% for item in review %}
+                {% if item["is_correct"] %}
+                    {% set chip_class = 'btn-correct' %}{% set mark = '&#10003;'|safe %}
+                {% elif not item["student_choice"] %}
+                    {% set chip_class = 'btn-skipped' %}{% set mark = '&#8211;'|safe %}
+                {% else %}
+                    {% set chip_class = 'btn-wrong' %}{% set mark = '&#10005;'|safe %}
+                {% endif %}
+                <a href="#review-q{{ item['question_id'] }}" class="answer-chip {{ chip_class }}">
+                    Q{{ loop.index }} {{ mark }}
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- ===== 42.12 QUIZ PROGRESS OVER TIME (appears from the 2nd attempt) ===== -->
+    {% if show_attempt_chart %}
+    <div class="card border-0 shadow-sm p-4 mb-4">
+        <h6 class="text-center mb-3">Quiz Progress Over Time</h6>
+        <div class="chart-box">
+            <canvas id="attemptChart"></canvas>
+        </div>
+        <p class="text-center small text-muted mb-0 mt-2">Every attempt is stored, so you can watch your improvement.</p>
+    </div>
+    {% endif %}
+
+    <!-- ===== 42.5 DETAILED ANSWER REVIEW ===== -->
+    <h4 class="mt-5 mb-3">Review Your Answers</h4>
+    {% for item in review %}
+    <div id="review-q{{ item['question_id'] }}"
+         class="card border-0 shadow-sm p-4 mb-3 {{ 'review-card-correct' if item['is_correct'] else 'review-card-wrong' }}">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+            <h5 class="mb-2">Question {{ loop.index }}</h5>
+            {% if item["is_correct"] %}
+                <span class="badge bg-success">&check; Correct</span>
+            {% elif not item["student_choice"] %}
+                <span class="badge bg-secondary">Not answered</span>
+            {% else %}
+                <span class="badge bg-danger">&#10005; Incorrect</span>
+            {% endif %}
+        </div>
+
+        <p class="fs-5">{{ item["question"] }}</p>
+
+        <div class="row">
+            <div class="col-md-6">
+                <p class="mb-1 text-muted small">Your Answer:</p>
+                <p class="{{ 'text-success fw-semibold' if item['is_correct'] else 'text-danger fw-semibold' }}">
+                    {{ item["student_answer_text"] }}
+                </p>
+            </div>
+            <div class="col-md-6">
+                <p class="mb-1 text-muted small">Correct Answer:</p>
+                <p class="text-success fw-semibold">{{ item["correct_answer_text"] }}</p>
+            </div>
+        </div>
+
+        {% if item["explanation"] %}
+        <p class="mb-2"><strong>Explanation:</strong> {{ item["explanation"] }}</p>
+        {% endif %}
+
+        <p class="mb-2 small text-muted">
+            Topic: <span class="badge bg-light text-dark border">{{ item["topic"] }}</span>
+            &nbsp; Difficulty: <span class="badge bg-light text-dark border">{{ item["difficulty"] }}</span>
+        </p>
+
+        {% if not item["is_correct"] %}
+            <!-- 42.11 link wrong answers back to the study material -->
+            <a href="{{ url_for('summary_page', video_id=video.id) }}" class="review-link">
+                <i class="bi bi-box-arrow-up-right"></i> Review This Topic in the Summary and Key Points
+            </a>
+        {% endif %}
+    </div>
+    {% endfor %}
+
+    <div class="d-flex gap-2 flex-wrap justify-content-center mt-4 mb-5">
+        <a href="{{ url_for('quiz_page', video_id=video.id) }}" class="btn btn-primary">
+            <i class="bi bi-arrow-repeat"></i> Retake Quiz
+        </a>
+        <a href="{{ url_for('summary_page', video_id=video.id) }}" class="btn btn-outline-success">
+            <i class="bi bi-journal-text"></i> Back to Summary
+        </a>
+        <a href="{{ url_for('history_page') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-clock-history"></i> History
+        </a>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Chart.js is loaded once, only on the results page, so other pages stay fast -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+// All numbers below were calculated in Python (app.py + quiz_generator.py).
+// JavaScript here ONLY draws the charts - it contains no scoring logic.
+
+const GREEN = '#16a34a';
+const RED = '#dc2626';
+const BLUE = '#2563eb';
+
+const chartDefaults = {
+    responsive: true,
+    maintainAspectRatio: false   // the .chart-box CSS controls the height
+};
+
+// ---- 42.2 Correct vs Incorrect doughnut ----
+new Chart(document.getElementById('answerChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Correct', 'Incorrect'],
+        datasets: [{
+            data: [{{ result.correct_answers }}, {{ result.incorrect_answers }}],
+            backgroundColor: [GREEN, RED],
+            borderWidth: 2
+        }]
+    },
+    options: chartDefaults
+});
+
+// ---- 42.3 Question-by-question bar chart (1 = correct, 0 = incorrect) ----
+// NOTE: use ['values'] - dot notation would hit Python's dict.values METHOD.
+const questionValues = {{ question_chart['values'] | tojson }};
+new Chart(document.getElementById('questionChart'), {
+    type: 'bar',
+    data: {
+        labels: {{ question_chart['labels'] | tojson }},
+        datasets: [{
+            label: 'Score',
+            data: questionValues,
+            backgroundColor: questionValues.map(v => v ? GREEN : RED),
+            borderRadius: 4
+        }]
+    },
+    options: Object.assign({}, chartDefaults, {
+        scales: {
+            y: { min: 0, max: 1, ticks: { stepSize: 1, precision: 0 } }
+        },
+        plugins: { legend: { display: false } }
+    })
+});
+
+{% if show_topic_chart %}
+// ---- 42.7 Topic-wise performance (only real topics from the questions) ----
+new Chart(document.getElementById('topicChart'), {
+    type: 'bar',
+    data: {
+        labels: {{ topic_scores.labels | tojson }},
+        datasets: [{
+            label: 'Percentage Score',
+            data: {{ topic_scores.percentages | tojson }},
+            backgroundColor: BLUE,
+            borderRadius: 4
+        }]
+    },
+    options: Object.assign({}, chartDefaults, {
+        scales: { y: { min: 0, max: 100, ticks: { callback: v => v + '%' } } },
+        plugins: { legend: { display: false } }
+    })
+});
+{% endif %}
+
+{% if show_difficulty_chart %}
+// ---- 42.8 Performance by difficulty (only levels present in the quiz) ----
+new Chart(document.getElementById('difficultyChart'), {
+    type: 'bar',
+    data: {
+        labels: {{ difficulty_scores.labels | tojson }},
+        datasets: [{
+            label: 'Percentage Score',
+            data: {{ difficulty_scores.percentages | tojson }},
+            backgroundColor: [GREEN, '#f59e0b', RED],
+            borderRadius: 4
+        }]
+    },
+    options: Object.assign({}, chartDefaults, {
+        scales: { y: { min: 0, max: 100, ticks: { callback: v => v + '%' } } },
+        plugins: { legend: { display: false } }
+    })
+});
+{% endif %}
+
+{% if show_attempt_chart %}
+// ---- 42.12 Quiz Progress Over Time (one point per stored attempt) ----
+new Chart(document.getElementById('attemptChart'), {
+    type: 'line',
+    data: {
+        labels: {{ attempt_labels | tojson }},
+        datasets: [{
+            label: 'Percentage Score',
+            data: {{ attempt_percentages | tojson }},
+            borderColor: BLUE,
+            backgroundColor: 'rgba(37, 99, 235, 0.15)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 5
+        }]
+    },
+    options: Object.assign({}, chartDefaults, {
+        scales: { y: { min: 0, max: 100, ticks: { callback: v => v + '%' } } },
+        plugins: { legend: { display: false } }
+    })
+});
+{% endif %}
+</script>
+{% endblock %}

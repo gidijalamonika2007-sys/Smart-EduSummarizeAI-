@@ -1,0 +1,7 @@
+﻿http://127.0.0.1:5000/ -> FAILED: Unable to connect to the remote server
+http://127.0.0.1:5000/login -> FAILED: Unable to connect to the remote server
+http://127.0.0.1:5000/register -> FAILED: Unable to connect to the remote server
+http://127.0.0.1:5000/admin/login -> 200
+http://127.0.0.1:5000/upload -> 200
+http://127.0.0.1:5000/history -> 200
+http://127.0.0.1:5000/about -> 200

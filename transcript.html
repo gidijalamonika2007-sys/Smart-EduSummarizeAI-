@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Transcript - EduSummarize AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+        <div>
+            <h2 class="mb-1"><i class="bi bi-text-left"></i> Full Transcript</h2>
+            <p class="text-muted mb-0">{{ video["title"] }}</p>
+        </div>
+        <div class="text-muted small">
+            {% if video["transcript_words"] %}
+                <i class="bi bi-123"></i> {{ "{:,}".format(video["transcript_words"]) }} words
+            {% endif %}
+            {% if video["duration"] %}
+                &nbsp;·&nbsp;<i class="bi bi-clock"></i> {{ "%.0f"|format(video["duration"] // 60) }}:{{ "%02d"|format(video["duration"] % 60) }}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- The transcript, split into readable paragraphs -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+            {% for paragraph in video["transcript"].split("\n\n") if paragraph.strip() %}
+                <p class="transcript-paragraph">{{ paragraph.strip() }}</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="d-flex gap-2 flex-wrap">
+        {% if video["summary_ready"] %}
+            <a href="{{ url_for('summary_page', video_id=video['id']) }}" class="btn btn-success">
+                <i class="bi bi-journal-text"></i> Study Notes
+            </a>
+        {% endif %}
+        <a href="{{ url_for('quiz_page', video_id=video['id']) }}" class="btn btn-primary">
+            <i class="bi bi-lightning-charge"></i> Start Quiz
+        </a>
+        <a href="{{ url_for('history_page') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-clock-history"></i> History
+        </a>
+    </div>
+
+</div>
+{% endblock %}

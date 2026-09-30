@@ -1,0 +1,13 @@
+venv/
+.env
+.env.*
+# ...but the template must travel with the repo, so copy it to find setup
+!.env.example
+__pycache__/
+*.pyc
+*.db
+*.log
+live_check*.txt
+*_output.txt
+uploads/*
+!uploads/.gitkeep

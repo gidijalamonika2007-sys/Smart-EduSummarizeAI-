@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Quiz - EduSummarize AI{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+
+            <div class="text-center mb-4">
+                <h3>{{ video["title"] }} &mdash; Quiz</h3>
+                <p class="text-muted">Answer all questions, then submit to see your score.</p>
+            </div>
+
+            {% if questions|length == 0 %}
+                <div class="alert alert-warning">No quiz questions were generated for this video yet.</div>
+                <a href="{{ url_for('summary_page', video_id=video.id) }}" class="btn btn-secondary">Back to Summary</a>
+            {% else %}
+
+            <div class="progress mb-4" style="height: 10px;">
+                <div class="progress-bar" id="quizProgress" role="progressbar" style="width: {{ (100 / questions|length) | round(1) }}%"></div>
+            </div>
+
+            <form action="{{ url_for('submit_quiz', video_id=video.id) }}" method="POST" id="quizForm">
+                {% for q in questions %}
+                <div class="quiz-question card border-0 shadow-sm p-4 mb-3 {% if not loop.first %}d-none{% endif %}" data-index="{{ loop.index0 }}">
+                    <p class="text-muted small mb-2">Question {{ loop.index }} of {{ questions|length }}</p>
+                    <h5 class="mb-4">{{ q.question }}</h5>
+
+                    <div class="form-check quiz-option mb-2">
+                        <input class="form-check-input" type="radio" name="question_{{ q.id }}" id="q{{ q.id }}_a" value="A">
+                        <label class="form-check-label" for="q{{ q.id }}_a">A. {{ q.option_a }}</label>
+                    </div>
+                    <div class="form-check quiz-option mb-2">
+                        <input class="form-check-input" type="radio" name="question_{{ q.id }}" id="q{{ q.id }}_b" value="B">
+                        <label class="form-check-label" for="q{{ q.id }}_b">B. {{ q.option_b }}</label>
+                    </div>
+                    <div class="form-check quiz-option mb-2">
+                        <input class="form-check-input" type="radio" name="question_{{ q.id }}" id="q{{ q.id }}_c" value="C">
+                        <label class="form-check-label" for="q{{ q.id }}_c">C. {{ q.option_c }}</label>
+                    </div>
+                    <div class="form-check quiz-option mb-2">
+                        <input class="form-check-input" type="radio" name="question_{{ q.id }}" id="q{{ q.id }}_d" value="D">
+                        <label class="form-check-label" for="q{{ q.id }}_d">D. {{ q.option_d }}</label>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <div class="d-flex justify-content-between mt-4">
+                    <button type="button" class="btn btn-outline-secondary" id="prevBtn" onclick="changeQuestion(-1)" disabled>
+                        <i class="bi bi-arrow-left"></i> Previous
+                    </button>
+                    <button type="button" class="btn btn-primary" id="nextBtn" onclick="changeQuestion(1)">
+                        Next <i class="bi bi-arrow-right"></i>
+                    </button>
+                    <button type="submit" class="btn btn-success d-none" id="submitBtn">
+                        <i class="bi bi-check2-circle"></i> Submit Quiz
+                    </button>
+                </div>
+            </form>
+
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const questions = document.querySelectorAll('.quiz-question');
+    let currentIndex = 0;
+
+    function showQuestion(index) {
+        questions.forEach((q, i) => q.classList.toggle('d-none', i !== index));
+
+        document.getElementById('prevBtn').disabled = (index === 0);
+        document.getElementById('nextBtn').classList.toggle('d-none', index === questions.length - 1);
+        document.getElementById('submitBtn').classList.toggle('d-none', index !== questions.length - 1);
+
+        const progress = ((index + 1) / questions.length) * 100;
+        document.getElementById('quizProgress').style.width = progress + '%';
+    }
+
+    function changeQuestion(direction) {
+        const newIndex = currentIndex + direction;
+        if (newIndex >= 0 && newIndex < questions.length) {
+            currentIndex = newIndex;
+            showQuestion(currentIndex);
+        }
+    }
+
+    document.getElementById('quizForm').addEventListener('submit', function(e) {
+        const unanswered = [];
+        document.querySelectorAll('.quiz-question').forEach((q, i) => {
+            const checked = q.querySelector('input[type=radio]:checked');
+            if (!checked) unanswered.push(i);
+        });
+        if (unanswered.length > 0) {
+            if (!confirm(`You have ${unanswered.length} unanswered question(s). Submit anyway?`)) {
+                e.preventDefault();
+                currentIndex = unanswered[0];
+                showQuestion(currentIndex);
+            }
+        }
+    });
+</script>
+{% endblock %}

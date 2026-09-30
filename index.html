@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}EduSummarize AI - Learn Smarter{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="hero-section text-center py-5">
+    <div class="container">
+        {% if demo_mode %}
+        <span class="badge bg-warning text-dark mb-3"><i class="bi bi-stars"></i> Demo Mode Available &mdash; No API key needed</span>
+        {% endif %}
+        <h1 class="display-5 fw-bold">AI Educational Video Summarizer</h1>
+        <p class="lead text-primary fw-semibold">Learn Smarter from Educational Videos</p>
+        <p class="col-lg-7 mx-auto text-muted">
+            Upload an educational video and let AI create a transcript, summary,
+            key learning points and interactive quiz.
+        </p>
+        <a href="{{ url_for('upload_page') }}" class="btn btn-primary btn-lg px-4 mt-2 shadow-sm">
+            <i class="bi bi-cloud-upload"></i> Upload Video
+        </a>
+    </div>
+</section>
+
+<!-- FEATURE CARDS -->
+<section class="container py-4">
+    <div class="row g-4">
+        <div class="col-md-3 col-sm-6">
+            <div class="card feature-card h-100 text-center p-3 border-0 shadow-sm">
+                <div class="card-body">
+                    <i class="bi bi-mic-fill feature-icon"></i>
+                    <h5 class="card-title mt-3">Video Transcription</h5>
+                    <p class="card-text text-muted">Convert educational video speech into text.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card feature-card h-100 text-center p-3 border-0 shadow-sm">
+                <div class="card-body">
+                    <i class="bi bi-file-text-fill feature-icon"></i>
+                    <h5 class="card-title mt-3">AI Summary</h5>
+                    <p class="card-text text-muted">Generate short and understandable study notes.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card feature-card h-100 text-center p-3 border-0 shadow-sm">
+                <div class="card-body">
+                    <i class="bi bi-patch-question-fill feature-icon"></i>
+                    <h5 class="card-title mt-3">Smart Quiz</h5>
+                    <p class="card-text text-muted">Automatically generate questions from the video.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card feature-card h-100 text-center p-3 border-0 shadow-sm">
+                <div class="card-body">
+                    <i class="bi bi-graph-up-arrow feature-icon"></i>
+                    <h5 class="card-title mt-3">Instant Results</h5>
+                    <p class="card-text text-muted">Receive scores and feedback immediately.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ANALYTICS -->
+<section class="container py-5">
+    <h3 class="text-center mb-4">Your Learning Analytics</h3>
+    <div class="row g-4 mb-4">
+        <div class="col-md-3 col-sm-6">
+            <div class="card stat-card text-center border-0 shadow-sm p-3">
+                <h2 class="text-primary">{{ analytics.videos_processed }}</h2>
+                <p class="text-muted mb-0">Videos Processed</p>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card stat-card text-center border-0 shadow-sm p-3">
+                <h2 class="text-primary">{{ analytics.quizzes_completed }}</h2>
+                <p class="text-muted mb-0">Quizzes Completed</p>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card stat-card text-center border-0 shadow-sm p-3">
+                <h2 class="text-success">{{ analytics.average_score }}%</h2>
+                <p class="text-muted mb-0">Average Quiz Score</p>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card stat-card text-center border-0 shadow-sm p-3">
+                <h2 class="text-success">{{ analytics.best_score }}%</h2>
+                <p class="text-muted mb-0">Best Score</p>
+            </div>
+        </div>
+    </div>
+
+    {% if analytics.history_scores and analytics.history_scores|length > 0 %}
+    <div class="card border-0 shadow-sm p-4">
+        <h5 class="mb-3">Quiz Performance Over Time</h5>
+        <canvas id="performanceChart" height="90"></canvas>
+    </div>
+    {% endif %}
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+{% if analytics.history_scores and analytics.history_scores|length > 0 %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script>
+    const ctx = document.getElementById('performanceChart');
+    const scores = {{ analytics.history_scores | tojson }};
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: scores.map((_, i) => 'Attempt ' + (i + 1)),
+            datasets: [{
+                label: 'Score %',
+                data: scores,
+                borderColor: '#2563eb',
+                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            scales: { y: { beginAtZero: true, max: 100 } },
+            plugins: { legend: { display: false } }
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

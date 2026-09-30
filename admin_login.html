@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Admin Login - EduSummarize AI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card border-0 shadow-sm p-4 border-top border-danger border-3">
+                <div class="text-center mb-4">
+                    <i class="bi bi-shield-lock-fill display-5 text-danger"></i>
+                    <h3 class="mt-2">Administrator Login</h3>
+                    <p class="text-muted mb-0">Manage users and monitor system activity.</p>
+                </div>
+
+                <form action="{{ url_for('admin_login_page') }}" method="POST">
+                    <div class="mb-3">
+                        <label for="username" class="form-label fw-semibold">Admin Username</label>
+                        <input type="text" class="form-control" id="username" name="username"
+                               required autofocus autocomplete="username" placeholder="admin">
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="password" class="form-label fw-semibold">Password</label>
+                        <input type="password" class="form-control" id="password" name="password"
+                               required autocomplete="current-password" placeholder="Your password">
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-danger btn-lg">
+                            <i class="bi bi-shield-check"></i> Log In as Admin
+                        </button>
+                    </div>
+                </form>
+
+                <p class="text-center text-muted mt-3 mb-0">
+                    Not an administrator? <a href="{{ url_for('login_page') }}">Student login</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,20 @@
+# Core web app
+Flask>=3.0
+python-dotenv>=1.0
+Werkzeug>=3.0          # password hashing (bundled with Flask, pinned for clarity)
+
+# AI
+openai>=1.51
+
+# Video / audio pipeline
+numpy>=1.26
+yt-dlp>=2024.8         # download audio from video links
+imageio-ffmpeg>=0.5    # bundled ffmpeg binary (used when ffmpeg is not on PATH)
+openai-whisper>=20231117 ; python_version < "3.13"
+# NOTE: openai-whisper needs Python <=3.12 to install comfortably.
+# On newer Python the app still runs: Demo Mode and URL/demo processing
+# work without Whisper; install Whisper separately when available.
+# moviepy is optional (the app calls ffmpeg directly for speed).
+
+
+gunicorn
